@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dinner Date?</title>
+    <style>
+        :root {
+            --primary-color: #ff6b81;
+            --secondary-color: #70a1ff;
+            --bg-color: #fff5f6;
+            --text-color: #2f3542;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-x: hidden; /* Prevents horizontal scroll from drifting hearts */
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+            transition: all 0.3s ease;
+            z-index: 10; /* Ensures the card stays above the floating background hearts */
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .btn-yes {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-no {
+            background-color: #e4e7eb;
+            color: var(--text-color);
+        }
+
+        .food-btn {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Message Box styling */
+        .message-box {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #ffeaa7;
+            border-left: 5px solid #ffb142;
+            border-radius: 5px;
+            font-style: italic;
+        }
+
+        /* Calendar Styling */
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+        }
+
+        .calendar-header {
+            font-weight: bold;
+            color: #a4b0be;
+            padding: 5px 0;
+        }
+
+        .calendar-day {
+            padding: 10px 0;
+            background: #f1f2f6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .calendar-day:hover {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .calendar-day.selected {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .empty-day {
+            visibility: hidden;
+        }
+
+        /* Floating Hearts Animation */
+        .floating-heart {
+            position: fixed;
+            bottom: -50px;
+            font-size: 1.5rem;
+            user-select: none;
+            pointer-events: none; /* Ensures clicking background items doesn't get blocked */
+            z-index: -1; /* Places hearts behind the content card */
+            animation: floatUp 6s linear forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-105vh) translateX(var(--random-x, 50px)) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="step-1" class="card">
+        <h1>Hey! Quick question??</h1>
+        <p>Would you like to go out for dinner with me??❤️❤️</p>
+        
+        <div id="no-message" class="message-box hidden"></div>
+
+        <div class="btn-container">
+            <button class="btn-yes" onclick="goToStep2()">Yes!</button>
+            <button class="btn-no" onclick="handleNoClick()">No</button>
+        </div>
+    </div>
+
+    <div id="step-2" class="card hidden">
+        <h1>Yay!! I am already excited 🎉</h1>
+        <p>What are we going to have??</p>
+        <div class="btn-container">
+            <button class="food-btn" onclick="selectFood('Indian')">🇮🇳 Indian</button>
+            <button class="food-btn" onclick="selectFood('Italian')">🇮🇹 Italian</button>
+            <button class="food-btn" onclick="selectFood('Something new')">✨ Something New</button>
+        </div>
+    </div>
+
+    <div id="step-3" class="card hidden">
+        <h2>Pick a date in July 2026 📅</h2>
+        <p>Selected Food: <strong id="summary-food"></strong></p>
+        
+        <div class="calendar">
+            <div class="calendar-header">S</div>
+            <div class="calendar-header">M</div>
+            <div class="calendar-header">T</div>
+            <div class="calendar-header">W</div>
+            <div class="calendar-header">T</div>
+            <div class="calendar-header">F</div>
+            <div class="calendar-header">S</div>
+
+            <div class="empty-day"></div>
+            <div class="empty-day"></div>
+            <div class="empty-day"></div>
+
+            <script>
+                for(let i = 1; i <= 31; i++) {
+                    document.write(`<div class="calendar-day" onclick="selectDate(${i}, this)">${i}</div>`);
+                }
+            </script>
+        </div>
+        <div class="btn-container">
+            <button class="btn-yes hidden" id="submit-btn" onclick="finishSelection()">Lock it in!</button>
+        </div>
+    </div>
+
+    <div id="step-4" class="card hidden">
+        <h1>We will have an amazing time!!💕💕</h1>
+        <p id="final-message"></p>
+    </div>
+
+    <script>
+        // --- CUSTOMIZE YOUR NO MESSAGES HERE ---
+        const noMessages = [
+            "Did you misclick that!!..😉😉",
+            "Nothing can do us apart, not even a 'No' on screen💕💕..",
+            "But I already picked out a nice outfit..😉😉",
+            "What if I say please??🥺🥺",
+            "I promise it will be an amazing night..✨❤️",
+            "Let's try once again.. I know you can do it..✨✨",
+            "Even the universe wants us to go to dinner!!✨❤️"
+        ];
+
+        let selectedFood = "";
+        let selectedDay = "";
+
+        // --- FLOATING HEARTS LOGIC ---
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('floating-heart');
+            heart.innerText = '💕';
+            
+            heart.style.left = Math.random() * 100 + 'vw';
+            
+            const size = Math.random() * 1.5 + 1; 
+            heart.style.fontSize = `${size}rem`;
+            
+            const duration = Math.random() * 3 + 4; 
+            heart.style.animationDuration = `${duration}s`;
+            
+            const drift = (Math.random() - 0.5) * 100; 
+            heart.style.setProperty('--random-x', `${drift}px`);
+            
+            document.body.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, duration * 1000);
+        }
+
+        // Spawn a new heart every 400ms
+        setInterval(createHeart, 400);
+
+        // --- NAVIGATION LOGIC ---
+        function handleNoClick() {
+            const messageDiv = document.getElementById('no-message');
+            const randomIndex = Math.floor(Math.random() * noMessages.length);
+            messageDiv.innerText = noMessages[randomIndex];
+            messageDiv.classList.remove('hidden');
+        }
+
+        function goToStep2() {
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.remove('hidden');
+        }
+
+        function selectFood(food) {
+            selectedFood = food;
+            document.getElementById('summary-food').innerText = food;
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('step-3').classList.remove('hidden');
+        }
+
+        function selectDate(day, element) {
+            const previouslySelected = document.querySelector('.calendar-day.selected');
+            if (previouslySelected) {
+                previouslySelected.classList.remove('selected');
+            }
+            
+            element.classList.add('selected');
+            selectedDay = day;
+
+            document.getElementById('submit-btn').classList.remove('hidden');
+        }
+
+        function finishSelection() {
+            document.getElementById('step-3').classList.add('hidden');
+            document.getElementById('step-4').classList.remove('hidden');
+            
+            document.getElementById('final-message').innerHTML = 
+                `Awesome! We are getting <strong>${selectedFood}</strong> food on <strong>July ${selectedDay}, 2026</strong>. See you then!`;
+        }
+    </script>
+</body>
+</html>
